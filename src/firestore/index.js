@@ -33,3 +33,13 @@ export async function logOut() {
     await auth.signOut();
     window.location.reload();
 }
+
+export async function getCollection(id) {
+    const snapshot = await db.collection(id).get();
+    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+}
+
+export async function getUserLists(userId) {
+    const snapshot = await db.collection('lists').where('author', '==', userId).get();
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
