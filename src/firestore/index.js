@@ -40,7 +40,7 @@ export async function getCollection(id) {
 }
 
 export async function getUserLists(userId) {
-    const snapshot = await db.collection('lists').where('author', '==', userId).get();
+    const snapshot = await db.collection('lists').where('userIds', 'array-contains', userId).get();
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
@@ -89,7 +89,7 @@ export async function getList(listId) {
 
 export async function createListItem({ user, listId, item }) {
     try {
-    const response = await fetch(`https://shot.screenshotapi.net/screenshot?token=${H9W5S5R-Z90433A-MQ2B8A1-KQ97905}&url=${item.link}`)
+    const response = await fetch(`https://shot.screenshotapi.net/screenshot?token=${process.env.API_KEY}&url=${item.link}`)
     const { screenshot } = await response.json()
     db.collection('lists').doc(listId).collection('items').add({
         name: item.name,
@@ -121,4 +121,15 @@ export function deleteListItem(listId, id) {
  .collection('items')
  .doc(itemId)
  .delete();   
+}
+
+export async function addUserToList(user, listId) {
+    await db.collection('lists').doc(listId).update({
+        userIds: firebase.firestore.FieldValue.arrayUnion(user.uid),
+        users: firebase.firestore.FieldValue.arrayUnion({
+            id: user.uid,
+            name: user.displayName
+        })
+    })
+    window.location.reload();
 }
